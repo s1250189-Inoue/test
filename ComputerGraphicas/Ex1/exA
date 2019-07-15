@@ -1,0 +1,20 @@
+CC = gcc
+CFLAGS = -I/usr/local/include
+LDLIBS = -L/usr/local/lib -lglut -lGLU -lGL -lm -lpthread
+all: exA exB exC exD exE exF exG
+exA: exA.c
+--TAB-->$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
+exB: exB.c
+--TAB-->$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
+exC: exC.c
+--TAB-->$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
+exD: exD.c
+--TAB-->$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
+exE: exE.c
+--TAB-->$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
+exF: exF.c
+--TAB-->$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
+exG: exG.c
+--TAB-->$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
+clean:
+--TAB-->rm *.o ex??
