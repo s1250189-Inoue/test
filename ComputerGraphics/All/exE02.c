@@ -30,10 +30,11 @@ typedef struct {
 
 // structure for a face
 typedef struct {
+    coord normal;	// unit normal vector
     int vid[ MAX_CORNERS ];
                         // IDs of vertices on the face
                         // (Note that this data structure is
-                        // redundant. Retaining a pointer to 
+                        // redundant. Retaining a pointer to
                         // an edge on the face is sufficient.
     int nV;             // number of vertices on the face
 } facet;
@@ -61,6 +62,66 @@ int left_mouse = 0, middle_mouse = 0, right_mouse = 0;
 // previous coordinates of the mouse pointer
 int last_pointer_x, last_pointer_y;
 
+//------------------------------------------------------------------------------
+//	Functions for vector calculations
+//------------------------------------------------------------------------------
+// add vectors
+coord add_vectors( coord a, coord b )
+{
+    int k;		// loop counter
+    coord sum;		// sum of the two input vectors
+    for ( k = 0; k < 3; ++k ) {
+	sum.v[ k ] = a.v[ k ] + b.v[ k ];
+    }
+    return sum;
+}
+
+// subtract vectors
+coord subtract_vectors( coord a, coord b )
+{
+    int k;		// loop counter
+    coord diff;		// difference between the two input vectors
+    for ( k = 0; k < 3; ++k ) {
+	diff.v[ k ] = a.v[ k ] - b.v[ k ];
+    }
+    return diff;
+}
+
+// inner product
+double inner_prod( coord a, coord b )
+{
+    int k;		// loop counter
+    double iprod = 0.0;	// inner product of the two input vectors
+    for ( k = 0; k < 3; ++k ) {
+	iprod += a.v[ k ] * b.v[ k ];
+    }
+    return iprod;
+}
+
+// outer product
+coord outer_prod( coord a, coord b )
+{
+    int k;		// loop counter
+    coord oprod;	// outer product of the two input vectors
+    for ( k = 0; k < 3; ++k ) {
+	oprod.v[ k ] = a.v[ (k+1)%3 ] * b.v[ (k+2)%3 ] - a.v[ (k+2)%3 ] * b.v[ (k+1)%3 ];
+    }
+    return oprod;
+}
+
+// normalize a vector
+coord normalize( coord v )
+{
+    int k;		// loop counter
+    double norm = sqrt( inner_prod( v, v ) );
+			// norm of the input vector
+    coord unit;		// normalized (unit) vector
+    for ( k = 0; k < 3; ++k ) {
+	unit.v[ k ] = v.v[ k ] / norm;
+    }
+    return unit;
+}
+
 // search an existing edge
 static int search_edge( int orig, int dest )
 {
@@ -82,6 +143,7 @@ void load_object( char * filename )
     int nCorners = 0;
     int corner[ MAX_CORNERS ];
                                 // array of corner vertex IDs
+    coord edgeL, edgeR;	 // edge vectors on each face
 
     // initialize the global variables
     nVertices = nEdges = nFaces = 0;
@@ -149,16 +211,74 @@ void load_object( char * filename )
         }
 	// generate a new face
 	face[ i ].nV = nCorners;
-    }
+  // obtain the two edge vectors outgoing from the 1st vertex of the face
+	edgeL = subtract_vectors( vertex[ corner[ 0 ] ], vertex[ corner[ 1 ] ] );
+	edgeR = subtract_vectors( vertex[ corner[ 2 ] ], vertex[ corner[ 1 ] ] );
+	// compute the unit normal vector of the face
+	face[ i ].normal = normalize( outer_prod( edgeR, edgeL ) );
+  }
 
     fclose( fp_r );
 
     fprintf( stderr, "Number of edges = %d\n", nEdges );
-
     fprintf( stderr, "Number of faces = %d\n", nFaces );
+    for ( i = 0; i < nFaces; ++i ) {
+    fprintf( stderr,
+             "Face No. %3d has the unit normal vector: (%6.3f, %6.3f, %6.3f)\n",
+             i,
+             face[ i ].normal.v[ 0 ],
+             face[ i ].normal.v[ 1 ],
+             face[ i ].normal.v[ 2 ] );
 }
-    
-// draw the object 
+#ifdef DEBUG
+    for ( i = 0; i < nEdges; ++i ) {
+	fprintf( stderr,
+		 "Edge No. %3d is incident to Faces No. %3d and No. %3d\n",
+		 i, edge[ i ].fidL, edge[ i ].fidR );
+    }
+#endif // DEBUG
+    fprintf( stderr, "Number of faces = %d\n", nFaces );
+#ifdef DEBUG
+    for ( i = 0; i < nFaces; ++i ) {
+        fprintf( stderr, "Face No. %3d has Vertices ", i );
+        for ( j = 0; j < face[ i ].nV; ++j ) {
+            fprintf( stderr, "No. %3d", face[ i ].vid[ j ] );
+            if ( j == face[ i ].nV - 2 ) fprintf( stderr, " and " );
+            else if ( j == face[ i ].nV - 1 ) fprintf( stderr, "." );
+            else fprintf( stderr, ", " );
+        }
+        fprintf( stderr, "\n" );
+    }
+#endif // DEBUG
+}
+
+// set color according to the face ID
+void set_color( int idF )
+{
+    // set the color of the face
+    switch ( idF % 6 ) {
+      case 0:   // red
+          glColor3d( 1.0, 0.0, 0.0 );
+          break;
+      case 1:   // green
+          glColor3d( 0.0, 1.0, 0.0 );
+          break;
+      case 2:   // blue
+          glColor3d( 0.0, 0.0, 1.0 );
+          break;
+      case 3:   // yellow
+          glColor3d( 1.0, 1.0, 0.0 );
+          break;
+      case 4:   // cyan
+          glColor3d( 0.0, 1.0, 1.0 );
+          break;
+      case 5:   // violet
+          glColor3d( 1.0, 0.0, 1.0 );
+          break;
+    }
+}
+
+// draw the object
 void draw_object( void )
 {
     // loop counters
@@ -196,7 +316,7 @@ void display( void )
     glRotated( -incidence, 1.0, 0.0, 0.0 );
     // rotate the object by the angle of azimuth
     glRotated( -azimuth, 0.0, 0.0, 1.0 );
- 
+
     // draw the object
     draw_object();
 
@@ -265,16 +385,16 @@ void motion( int x, int y )
 {
     const double ratio = 0.1;
     const double extent = 0.1;
-    
+
     // dragging the right mouse button
     if ( right_mouse ) {
-      //[ -- write your code to update the viewing parameters such as incidence and azimuth -- ]
+        [ -- write your code to update the viewing parameters such as incidence and azimuth -- ]
     }
     // dragging the middle mouse button
     else if ( middle_mouse ) {
         distance -= extent * ( double )( y - last_pointer_y );
     }
-    
+
     // update the latest mouse coordinates
     last_pointer_x = x;
     last_pointer_y = y;
@@ -348,7 +468,7 @@ void init( void )
 // main function
 int main( int argc, char *argv[] )
 {
-    // initialize GLUT 
+    // initialize GLUT
     glutInit( &argc, argv );
     // locate the top-left corner of the window
     glutInitWindowPosition( 50, 50 );

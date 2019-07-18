@@ -1,15 +1,14 @@
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
 
-#define WINDOW_SIZE	(512)
+#define WINDOW_SIZE                (512)
 
 // maximum limit of elements
-#define MAX_VERTICES	(16384)
-#define MAX_EDGES	(16384)
-#define MAX_FACES	(16384)
-#define MAX_CORNERS	(64)
+#define MAX_VERTICES     (16384)
+#define MAX_EDGES        (16384)
+#define MAX_FACES        (16384)
+#define MAX_CORNERS      (64)
 
 // dummy index
 #define NO_INDEX        (-1)
@@ -22,10 +21,10 @@ typedef struct {
 
 // structure for a winged edge
 typedef struct {
-    int vidO;           // origin vertex ID of the edge
-    int vidD;           // destination vertex ID of the edge
-    int fidL;           // left face ID
-    int fidR;           // right face ID
+  int vidO;           // origin vertex ID of the edge
+  int vidD;           // destination vertex ID of the edge
+  int fidL;           // left face ID
+  int fidR;           // right face ID
 } winged;
 
 // structure for a face
@@ -52,9 +51,9 @@ facet face[ MAX_FACES ];
 double incidence        = 45.0;
 double azimuth          = 30.0;
 // aspect ratio
-double aspect		=  1.0;
+double aspect           =  1.0;
 // distance between the eye and origin
-double distance		=  6.0;
+double distance         =  6.0;
 
 // flags for mouse button ON/OFF (OFF = 0, ON = 1)
 int left_mouse = 0, middle_mouse = 0, right_mouse = 0;
@@ -76,7 +75,7 @@ static int search_edge( int orig, int dest )
 // load an object
 void load_object( char * filename )
 {
-    int i, j, k;         // loop counters
+    int i, j, k;        // loop counters
     FILE * fp_r = NULL;  // file pointer
     char buf[ 256 ];     // temporary buffer
     int nCorners = 0;
@@ -133,19 +132,19 @@ void load_object( char * filename )
 
         // generate winged-edge data elements
         for ( j = 0; j < nCorners; j++ ) {
-            face[ i ].vid[ j ] = corner[ j ];
-            int eidT = search_edge( corner[ (j+1)%nCorners ], corner[ j ] );
-            // If the counter part does not exist, generate a new edge.
-            if ( eidT == NO_INDEX ) {
-                edge[ nEdges ].vidO = corner[ j ];
-                edge[ nEdges ].vidD = corner[ (j+1)%nCorners ];
-		edge[ nEdges ].fidL = i;
-                nEdges++;
-            }
-            // Otherwise, the opposite face of an existing edge
-            else {
-                edge[ eidT ].fidR = i;
-            }
+	  face[ i ].vid[ j ] = corner[ j ];
+	  int eidT = search_edge( corner[ (j+1)%nCorners ], corner[ j ] );
+	  // If the counter part does not exist, generate a new edge.
+	  if ( eidT == NO_INDEX ) {
+	    edge[ nEdges ].vidO = corner[ j ];
+	    edge[ nEdges ].vidD = corner[ (j+1)%nCorners ];
+	    edge[ nEdges ].fidL = i;
+	    nEdges++;
+	  }
+	  // Otherwise, the opposite face of an existing edge
+	  else {
+	    edge[ eidT ].fidR = i;
+	  }
         }
 	// generate a new face
 	face[ i ].nV = nCorners;
@@ -154,35 +153,71 @@ void load_object( char * filename )
     fclose( fp_r );
 
     fprintf( stderr, "Number of edges = %d\n", nEdges );
-
+#ifdef DEBUG
+    for ( i = 0; i < nEdges; ++i ) {
+      fprintf( stderr,
+	       "Edge No. %3d is incident to Faces No. %3d and No. %3d\n",
+	       i, edge[ i ].fidL, edge[ i ].fidR );
+    }
+#endif // DEBUG
     fprintf( stderr, "Number of faces = %d\n", nFaces );
+#ifdef DEBUG
+    for ( i = 0; i < nFaces; ++i ) {
+      fprintf( stderr, "Face No. %3d has Vertices ", i );
+      for ( j = 0; j < face[ i ].nV; ++j ) {
+	fprintf( stderr, "No. %3d", face[ i ].vid[ j ] );
+	if ( j == face[ i ].nV - 2 ) fprintf( stderr, " and " );
+	else if ( j == face[ i ].nV - 1 ) fprintf( stderr, "." );
+	else fprintf( stderr, ", " );
+      }
+      fprintf( stderr, "\n" );
+    }
+#endif // DEBUG
 }
-    
+
 // draw the object 
 void draw_object( void )
 {
-    // loop counters
-    int i, j;
+    // loop counter
+  int i, j;
 
-    // set the color of the face
-    glColor3d( 1.0, 1.0, 1.0 );
+    // set the line width
+    glLineWidth( 1.0 );
+
+    // change color to white
+    glColor3d(  1.0,  1.0,  1.0 );
+
+    // draw a list of faces
+
+    
     // for each face
     for ( i = 0; i < nFaces; ++i ) {
-        // fill the face
-	glBegin( GL_POLYGON );
-	// for each corner vertex
-	for ( j = 0; j < face[ i ].nV; ++j ) {
-	    glVertex3dv( vertex[ face[ i ].vid[ j ] ].v );
-	}
-	glEnd();
+      // draw the face
+      glBegin( GL_LINE_LOOP );
+      // for each corner vertex
+      for ( j = 0; j < face[ i ].nV; ++j ) {
+	glVertex3dv( vertex[ face[ i ].vid[ j ] ].v );
+      }
+      glEnd();
     }
+    
+    // draw a list of line segments
+    glBegin( GL_LINES );
+
+    // for each edge
+    for ( i = 0; i < nEdges; ++i ) {
+        // draw the edge
+      glVertex3dv( vertex[ edge[ i ].vidO ].v );
+      glVertex3dv( vertex[ edge[ i ].vidD ].v );
+    }
+    glEnd();
 }
 
 // display callback function
 void display( void )
 {
-    // clear the color and depth buffer simultaneously
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    // clear buffer to preset color
+    glClear( GL_COLOR_BUFFER_BIT );
 
     // set modelview matrix mode
     glMatrixMode( GL_MODELVIEW );
@@ -268,7 +303,8 @@ void motion( int x, int y )
     
     // dragging the right mouse button
     if ( right_mouse ) {
-      //[ -- write your code to update the viewing parameters such as incidence and azimuth -- ]
+	azimuth -= ratio * ( double )( x - last_pointer_x );
+	incidence -= ratio * ( double )( y - last_pointer_y );
     }
     // dragging the middle mouse button
     else if ( middle_mouse ) {
@@ -293,7 +329,7 @@ void keyboard( unsigned char key, int x, int y )
      case '\033':  // ASCII code of ESC
          exit( 0 );
          break;
-     // cube
+	      // cube
      case '1':
          load_object( "cube.dat" );
          break;
@@ -324,7 +360,8 @@ void keyboard( unsigned char key, int x, int y )
      // horse
      case '8':
          load_object( "horse.dat" );
-         break;     // default
+         break;
+     // default
      default:
          break;
    }
@@ -336,13 +373,6 @@ void init( void )
 {
     // specify black color for clearing frame buffer
     glClearColor( 0.0, 0.0, 0.0, 0.0 );
-
-    // enable hidden surface removal by depth test
-    glEnable( GL_DEPTH_TEST );
-
-    // Enable back face culling
-    glEnable( GL_CULL_FACE );
-    glCullFace( GL_BACK );
 }
 
 // main function
@@ -354,8 +384,8 @@ int main( int argc, char *argv[] )
     glutInitWindowPosition( 50, 50 );
     // set the window size
     glutInitWindowSize( WINDOW_SIZE, WINDOW_SIZE );
-    // set initial display mode while enable depth buffer simultaneously
-    glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
+    // set initial display mode
+    glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE );
     // create a window
     glutCreateWindow( argv[0] );
     // set a pointer to the display callback function
@@ -370,6 +400,7 @@ int main( int argc, char *argv[] )
     glutKeyboardFunc( keyboard );
     // clearing frame buffer
     init();
+
 
     // get into the main interaction loop
     glutMainLoop();
