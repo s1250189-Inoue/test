@@ -57,6 +57,9 @@ double aspect		=  1.0;
 // distance between the eye and origin
 double distance		=  6.0;
 
+// Position of the Light No. 0 (Spot light)
+float light0_position[] = { 0.0, 0.0, 5.0, 1.0 };
+
 // flags for mouse button ON/OFF (OFF = 0, ON = 1)
 int left_mouse = 0, middle_mouse = 0, right_mouse = 0;
 // previous coordinates of the mouse pointer
@@ -221,6 +224,7 @@ void load_object( char * filename )
 
     fprintf( stderr, "Number of edges = %d\n", nEdges );
     fprintf( stderr, "Number of faces = %d\n", nFaces );
+#ifdef DEBUG
     for ( i = 0; i < nFaces; ++i ) {
         fprintf( stderr,
                  "Face No. %3d has the unit normal vector: (%6.3f, %6.3f, %6.3f)\n",
@@ -229,6 +233,7 @@ void load_object( char * filename )
                  face[ i ].normal.v[ 1 ],
                  face[ i ].normal.v[ 2 ] );
     }
+#endif // DEBUG
 }
 
 // draw the object
@@ -237,12 +242,12 @@ void draw_object( void )
     // loop counters
     int i, j;
 
-    // set the color of the face
-    glColor3d( 1.0, 1.0, 1.0 );
     // for each face
     for ( i = 0; i < nFaces; ++i ) {
         // fill the face
 	glBegin( GL_POLYGON );
+  // set the normal vector of each face
+  glNormal3dv( face[ i ].normal.v );
 	// for each corner vertex
 	for ( j = 0; j < face[ i ].nV; ++j ) {
 	    glVertex3dv( vertex[ face[ i ].vid[ j ] ].v );
@@ -261,6 +266,8 @@ void display( void )
     glMatrixMode( GL_MODELVIEW );
     // initialize with an identity matrix
     glLoadIdentity();
+    // set up the fixed positions of lights
+    glLightfv( GL_LIGHT0, GL_POSITION, light0_position );
 
     // Note: transformation matrices are applied in the reverse order
     // translate the object along the view direction (z-axis)
@@ -418,6 +425,11 @@ void init( void )
     // Enable back face culling
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
+
+    // Enable lighting
+    glEnable( GL_LIGHTING );
+    // Activate Light No. 0
+    glEnable( GL_LIGHT0 );
 }
 
 // main function
