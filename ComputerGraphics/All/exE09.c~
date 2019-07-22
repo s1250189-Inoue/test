@@ -42,20 +42,36 @@ typedef struct {
 // vertices
 int nVertices = 0;
 coord vertex[ MAX_VERTICES ];
+
 // edges
 int nEdges = 0;
 winged edge[ MAX_EDGES ];
 // faces
 int nFaces = 0;
 facet face[ MAX_FACES ];
-
+// vertex normals
+coord normal[ MAX_VERTICES ];
 // angles of incidence and azimuth
 double incidence        = 45.0;
 double azimuth          = 30.0;
 // aspect ratio
 double aspect		=  1.0;
 // distance between the eye and origin
-double distance		=  6.0;
+double distance		=  4.0;
+
+// Position of the Light No. 0 (Directional light)
+float light0_position[] = { 1.0, 1.0, 1.0, 0.0 };
+// Position of the Light No. 1 (Directional light)
+float light1_position[] = {-1.0,-1.0,-1.0, 0.0 };
+// colors
+float red[] =             { 1.0, 0.0, 0.0, 1.0 };
+float green[] =           { 0.0, 1.0, 0.0, 1.0 };
+float blue[] =            { 0.0, 0.0, 1.0, 1.0 };
+float yellow[] =          { 1.0, 1.0, 0.0, 1.0 };
+float cyan[] =            { 0.0, 1.0, 1.0, 1.0 };
+float white[] =           { 1.0, 1.0, 1.0, 1.0 };
+
+
 
 // flags for mouse button ON/OFF (OFF = 0, ON = 1)
 int left_mouse = 0, middle_mouse = 0, right_mouse = 0;
@@ -167,6 +183,8 @@ void load_object( char * filename )
         fgets( buf, sizeof( buf ), fp_r );
 	sscanf( buf, "%lf %lf %lf",
 		&( vertex[ i ].v[ 0 ] ), &( vertex[ i ].v[ 1 ] ), &( vertex[ i ].v[ 2 ] ) );
+	// initialize the vertex normal
+	for ( j = 0; j < 3; ++j ) normal[ i ].v[ j ] = 0.0;
     }
 
     // load the number of faces
@@ -215,12 +233,20 @@ void load_object( char * filename )
 	edgeR = subtract_vectors( vertex[ corner[ 2 ] ], vertex[ corner[ 1 ] ] );
 	// compute the unit normal vector of the face
 	face[ i ].normal = normalize( outer_prod( edgeR, edgeL ) );
+	// distribute the normal of the face to the corner vertices
+	for ( j = 0; j < nCorners; ++j )
+	  normal[ corner[ j ] ] = add_vectors( normal[ corner[ j ] ], face[ i ].normal );
     }
+
+    // finalize the vertex normals by normalizing them
+    for ( i = 0; i < nVertices; ++i )
+	normal[ i ] = normalize( normal[ i ] );
 
     fclose( fp_r );
 
     fprintf( stderr, "Number of edges = %d\n", nEdges );
     fprintf( stderr, "Number of faces = %d\n", nFaces );
+#ifdef DEBUG
     for ( i = 0; i < nFaces; ++i ) {
         fprintf( stderr,
                  "Face No. %3d has the unit normal vector: (%6.3f, %6.3f, %6.3f)\n",
@@ -229,6 +255,7 @@ void load_object( char * filename )
                  face[ i ].normal.v[ 1 ],
                  face[ i ].normal.v[ 2 ] );
     }
+#endif // DEBUG
 }
 
 // draw the object
@@ -237,15 +264,15 @@ void draw_object( void )
     // loop counters
     int i, j;
 
-    // set the color of the face
-    glColor3d( 1.0, 1.0, 1.0 );
     // for each face
     for ( i = 0; i < nFaces; ++i ) {
         // fill the face
 	glBegin( GL_POLYGON );
 	// for each corner vertex
 	for ( j = 0; j < face[ i ].nV; ++j ) {
-	    glVertex3dv( vertex[ face[ i ].vid[ j ] ].v );
+	  // set the normal vector at each vertex
+	  glNormal3dv( normal[ face[ i ].vid[ j ] ].v );
+	  glVertex3dv( vertex[ face[ i ].vid[ j ] ].v );
 	}
 	glEnd();
     }
@@ -261,6 +288,10 @@ void display( void )
     glMatrixMode( GL_MODELVIEW );
     // initialize with an identity matrix
     glLoadIdentity();
+
+    // set up the directions of lights
+    glLightfv( GL_LIGHT0, GL_POSITION, light0_position );
+    glLightfv( GL_LIGHT1, GL_POSITION, light1_position );
 
     // Note: transformation matrices are applied in the reverse order
     // translate the object along the view direction (z-axis)
@@ -418,6 +449,21 @@ void init( void )
     // Enable back face culling
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
+
+    // set up the colors of lights
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, yellow );
+    glLightfv( GL_LIGHT1, GL_DIFFUSE, blue );
+
+    // set up the colors of the material
+    glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT, cyan );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, cyan );
+    
+    // Enable lighting
+    glEnable( GL_LIGHTING );
+    // Activate Light No. 0
+    glEnable( GL_LIGHT0 );
+    // Activate Light No. 1
+    glEnable( GL_LIGHT1 );
 }
 
 // main function

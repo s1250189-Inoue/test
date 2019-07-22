@@ -33,7 +33,7 @@ typedef struct {
     int vid[ MAX_CORNERS ];
                         // IDs of vertices on the face
                         // (Note that this data structure is
-                        // redundant. Retaining a pointer to 
+                        // redundant. Retaining a pointer to
                         // an edge on the face is sufficient.
     int nV;             // number of vertices on the face
 } facet;
@@ -157,8 +157,8 @@ void load_object( char * filename )
 
     fprintf( stderr, "Number of faces = %d\n", nFaces );
 }
-    
-// draw the object 
+
+// draw the object
 void draw_object( void )
 {
     // loop counters
@@ -196,7 +196,7 @@ void display( void )
     glRotated( -incidence, 1.0, 0.0, 0.0 );
     // rotate the object by the angle of azimuth
     glRotated( -azimuth, 0.0, 0.0, 1.0 );
- 
+
     // draw the object
     draw_object();
 
@@ -265,16 +265,18 @@ void motion( int x, int y )
 {
     const double ratio = 0.1;
     const double extent = 0.1;
-    
+
     // dragging the right mouse button
     if ( right_mouse ) {
       //[ -- write your code to update the viewing parameters such as incidence and azimuth -- ]
+      azimuth -= ratio * ( double )( x - last_pointer_x );
+	    incidence -= ratio * ( double )( y - last_pointer_y );
     }
     // dragging the middle mouse button
     else if ( middle_mouse ) {
         distance -= extent * ( double )( y - last_pointer_y );
     }
-    
+
     // update the latest mouse coordinates
     last_pointer_x = x;
     last_pointer_y = y;
@@ -348,7 +350,7 @@ void init( void )
 // main function
 int main( int argc, char *argv[] )
 {
-    // initialize GLUT 
+    // initialize GLUT
     glutInit( &argc, argv );
     // locate the top-left corner of the window
     glutInitWindowPosition( 50, 50 );
