@@ -30,11 +30,11 @@ typedef struct {
 
 // structure for a face
 typedef struct {
-  coord normal;	// unit normal vector
+    coord normal;	// unit normal vector
     int vid[ MAX_CORNERS ];
                         // IDs of vertices on the face
                         // (Note that this data structure is
-                        // redundant. Retaining a pointer to
+                        // redundant. Retaining a pointer to 
                         // an edge on the face is sufficient.
     int nV;             // number of vertices on the face
 } facet;
@@ -42,42 +42,33 @@ typedef struct {
 // vertices
 int nVertices = 0;
 coord vertex[ MAX_VERTICES ];
-
+// vertex normals
+coord normal[ MAX_VERTICES ];
 // edges
 int nEdges = 0;
 winged edge[ MAX_EDGES ];
 // faces
 int nFaces = 0;
 facet face[ MAX_FACES ];
-// vertex normals
-coord normal[ MAX_VERTICES ];
+
 // angles of incidence and azimuth
 double incidence        = 45.0;
 double azimuth          = 30.0;
 // aspect ratio
 double aspect		=  1.0;
 // distance between the eye and origin
-double distance		=  4.0;
+double distance		=  6.0;
 
-// Position of the Light No. 0 (Spot light)
-float light0_position[] = { 0.00, 0.0, 2.54, 1.0 };
-// Position of the Light No. 1 (Spot light)
-float light1_position[] = { 0.00, 2.30, -0.82, 1.0 };
-// Position of the Light No. 2 (Spot light)
-float light2_position[] = { 2.00, -1.16, -0.82, 1.0 };
-// Position of the Light No. 3 (Spot light)
-float light3_position[] = { -2.00, -1.16, -0.82, 1.0 };
-
-// colors
-float red[] =             { 1.0, 0.0, 0.0, 1.0 };
-float green[] =           { 0.0, 1.0, 0.0, 1.0 };
-float blue[] =            { 0.0, 0.0, 1.0, 1.0 };
-float yellow[] =          { 1.0, 1.0, 0.0, 1.0 };
-float cyan[] =            { 0.0, 1.0, 1.0, 1.0 };
-float white[] =           { 1.0, 1.0, 1.0, 1.0 };
-float obj[] =             { 0.5, 0.6, 0.7, 1.0 };
-
-
+// Position of the Light No. 0 (Directional light)
+float light0_position[] = { 1.0, 1.0, 1.0, 0.0 };
+// light colors
+float light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+float light_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
+float light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+// material colors
+float material_ambient[] = { 0.3, 0.3, 0.3, 1.0 };
+float material_diffuse[] = { 0.5, 0.6, 0.7, 1.0 };
+float material_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 
 // flags for mouse button ON/OFF (OFF = 0, ON = 1)
 int left_mouse = 0, middle_mouse = 0, right_mouse = 0;
@@ -85,7 +76,7 @@ int left_mouse = 0, middle_mouse = 0, right_mouse = 0;
 int last_pointer_x, last_pointer_y;
 
 //------------------------------------------------------------------------------
-//	Functions for vector calculations
+//	Functions for vector calculations 
 //------------------------------------------------------------------------------
 // add vectors
 coord add_vectors( coord a, coord b )
@@ -144,6 +135,8 @@ coord normalize( coord v )
     return unit;
 }
 
+
+
 // search an existing edge
 static int search_edge( int orig, int dest )
 {
@@ -166,6 +159,7 @@ void load_object( char * filename )
     int corner[ MAX_CORNERS ];
                                 // array of corner vertex IDs
     coord edgeL, edgeR;	 // edge vectors on each face
+
     // initialize the global variables
     nVertices = nEdges = nFaces = 0;
 
@@ -234,14 +228,14 @@ void load_object( char * filename )
         }
 	// generate a new face
 	face[ i ].nV = nCorners;
-  // obtain the two edge vectors outgoing from the 1st vertex of the face
+	// obtain the two edge vectors outgoing from the 1st vertex of the face
 	edgeL = subtract_vectors( vertex[ corner[ 0 ] ], vertex[ corner[ 1 ] ] );
 	edgeR = subtract_vectors( vertex[ corner[ 2 ] ], vertex[ corner[ 1 ] ] );
 	// compute the unit normal vector of the face
 	face[ i ].normal = normalize( outer_prod( edgeR, edgeL ) );
-	// distribute the normal of the face to the corner vertices
+        // distribute the normal of the face to the corner vertices
 	for ( j = 0; j < nCorners; ++j )
-	  normal[ corner[ j ] ] = add_vectors( normal[ corner[ j ] ], face[ i ].normal );
+	    normal[ corner[ j ] ] = add_vectors( normal[ corner[ j ] ], face[ i ].normal );
     }
 
     // finalize the vertex normals by normalizing them
@@ -252,19 +246,9 @@ void load_object( char * filename )
 
     fprintf( stderr, "Number of edges = %d\n", nEdges );
     fprintf( stderr, "Number of faces = %d\n", nFaces );
-#ifdef DEBUG
-    for ( i = 0; i < nFaces; ++i ) {
-        fprintf( stderr,
-                 "Face No. %3d has the unit normal vector: (%6.3f, %6.3f, %6.3f)\n",
-                 i,
-                 face[ i ].normal.v[ 0 ],
-                 face[ i ].normal.v[ 1 ],
-                 face[ i ].normal.v[ 2 ] );
-    }
-#endif // DEBUG
 }
 
-// draw the object
+// draw the object 
 void draw_object( void )
 {
     // loop counters
@@ -276,9 +260,9 @@ void draw_object( void )
 	glBegin( GL_POLYGON );
 	// for each corner vertex
 	for ( j = 0; j < face[ i ].nV; ++j ) {
-	  // set the normal vector at each vertex
-	  glNormal3dv( normal[ face[ i ].vid[ j ] ].v );
-	  glVertex3dv( vertex[ face[ i ].vid[ j ] ].v );
+            // set the normal vector at each vertex
+            glNormal3dv( normal[ face[ i ].vid[ j ] ].v );
+	    glVertex3dv( vertex[ face[ i ].vid[ j ] ].v );
 	}
 	glEnd();
     }
@@ -294,11 +278,9 @@ void display( void )
     glMatrixMode( GL_MODELVIEW );
     // initialize with an identity matrix
     glLoadIdentity();
-    
-    // set up the relative posotions of lights
-    glLightfv( GL_LIGHT2, GL_POSITION, light2_position );
-    glLightfv( GL_LIGHT3, GL_POSITION, light3_position );
-    
+
+    // set up the directions of lights
+    glLightfv( GL_LIGHT0, GL_POSITION, light0_position );
 
     // Note: transformation matrices are applied in the reverse order
     // translate the object along the view direction (z-axis)
@@ -307,11 +289,7 @@ void display( void )
     glRotated( -incidence, 1.0, 0.0, 0.0 );
     // rotate the object by the angle of azimuth
     glRotated( -azimuth, 0.0, 0.0, 1.0 );
-
-    
-// set up the fixed positions of lights
-    glLightfv( GL_LIGHT0, GL_POSITION, light0_position );
-    glLightfv( GL_LIGHT1, GL_POSITION, light1_position ); 
+ 
     // draw the object
     draw_object();
 
@@ -380,18 +358,17 @@ void motion( int x, int y )
 {
     const double ratio = 0.1;
     const double extent = 0.1;
-
+    
     // dragging the right mouse button
     if ( right_mouse ) {
-      //[ -- write your code to update the viewing parameters such as incidence and azimuth -- ]
-      azimuth -= ratio * ( double )( x - last_pointer_x );
-	    incidence -= ratio * ( double )( y - last_pointer_y );
+	azimuth -= ratio * ( double )( x - last_pointer_x );
+	incidence -= ratio * ( double )( y - last_pointer_y );
     }
     // dragging the middle mouse button
     else if ( middle_mouse ) {
         distance -= extent * ( double )( y - last_pointer_y );
     }
-
+    
     // update the latest mouse coordinates
     last_pointer_x = x;
     last_pointer_y = y;
@@ -462,34 +439,26 @@ void init( void )
     glCullFace( GL_BACK );
 
     // set up the colors of lights
-    glLightfv( GL_LIGHT0, GL_DIFFUSE, red );
-    glLightfv( GL_LIGHT1, GL_DIFFUSE, yellow );
-    glLightfv( GL_LIGHT2, GL_DIFFUSE, green );
-    glLightfv( GL_LIGHT3, GL_DIFFUSE, cyan );
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, light_diffuse );
+    glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT0, GL_SPECULAR, light_specular );
 
     // set up the colors of the material
-    glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT, obj );
-    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, obj );
-    glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, obj );
-    glMaterialf( GL_FRONT_AND_BACK, GL_SHININESS, 10.0 );
-    
-    
+    glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT, material_ambient );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, material_diffuse );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, material_specular );
+    glMaterialf( GL_FRONT_AND_BACK, GL_SHININESS, 50.0 );
+
     // Enable lighting
     glEnable( GL_LIGHTING );
     // Activate Light No. 0
     glEnable( GL_LIGHT0 );
-    // Activate Light No. 1
-    glEnable( GL_LIGHT1 );
-    // Activate Light No. 2
-    glEnable( GL_LIGHT2 );
-    // Activate Light No. 3
-    glEnable( GL_LIGHT3 );
 }
 
 // main function
 int main( int argc, char *argv[] )
 {
-    // initialize GLUT
+    // initialize GLUT 
     glutInit( &argc, argv );
     // locate the top-left corner of the window
     glutInitWindowPosition( 50, 50 );
