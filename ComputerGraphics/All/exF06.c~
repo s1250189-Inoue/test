@@ -17,7 +17,7 @@
 // texture attributes
 #define TEXTURE_WIDTH  (512)
 #define TEXTURE_HEIGHT (512)
-#define TEXTURE_FILENAME "smooth.rgb"
+#define TEXTURE_FILENAME "step.rgb"
 #define TEXTURE_MARGIN	(1.0e-2)
 
 #ifndef INFINITY
@@ -68,6 +68,12 @@ facet face[ MAX_FACES ];
 // additional variables for texture mapping
 coord  sunlight = { -0.577, -0.577, 0.577 };
 double minZ =  INFINITY, maxZ = -INFINITY;
+
+// time for animation
+double t = 0.0;
+const double dt = 0.01;
+// solid position for animation
+coord pos;
 
 // angles of incidence and azimuth
 double incidence        = 45.0;
@@ -325,6 +331,10 @@ void display( void )
     // rotate the object by the angle of azimuth
     glRotated( -azimuth, 0.0, 0.0, 1.0 );
 
+    // transformation for animating the solid
+    glPushMatrix();
+    glTranslated( pos.v[ 0 ], pos.v[ 1 ], pos.v[ 2 ] );
+
     // begin texture mapping
     glEnable( GL_TEXTURE_2D );
 
@@ -334,9 +344,26 @@ void display( void )
     // end texture mapping
     glDisable( GL_TEXTURE_2D );
 
+    // finished transformation for animation
+    glPopMatrix();
+
     // swap the foreground and background buffers
     glutSwapBuffers();
 }
+
+// idle callback function for animation
+void idle( void )
+{
+    // redraw the scene first of all
+    glutPostRedisplay();
+    // increment the time
+    t += dt;
+    // set the center of the solid
+    pos.v[ 0 ] = sin( t ) * cos( 2.0 * M_PI * t );
+    pos.v[ 1 ] = sin( t ) * sin( 2.0 * M_PI * t );
+    pos.v[ 2 ] = cos( t ) * sin( 2.0 * M_PI * t );
+}
+
 
 // reshape callback function
 void reshape( int w, int h )
@@ -543,6 +570,8 @@ int main( int argc, char *argv[] )
     glutCreateWindow( argv[0] );
     // set a pointer to the display callback function
     glutDisplayFunc( display );
+    // set a pointer to the idel callback function
+    glutIdleFunc( idle );
     // set a pointer to the reshape callback function
     glutReshapeFunc( reshape );
     // set a pointer to the mouse callback function

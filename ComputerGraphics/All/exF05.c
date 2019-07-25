@@ -17,7 +17,7 @@
 // texture attributes
 #define TEXTURE_WIDTH  (512)
 #define TEXTURE_HEIGHT (512)
-#define TEXTURE_FILENAME "smooth.rgb"
+#define TEXTURE_FILENAME "step.rgb"
 #define TEXTURE_MARGIN	(1.0e-2)
 
 #ifndef INFINITY
