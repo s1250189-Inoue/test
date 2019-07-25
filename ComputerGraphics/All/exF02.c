@@ -14,6 +14,11 @@
 // dummy index
 #define NO_INDEX        (-1)
 
+// texture attributes
+#define TEXTURE_WIDTH  (512)
+#define TEXTURE_HEIGHT (512)
+#define TEXTURE_FILENAME "rocks.rgb"
+
 // *** Simple winged-edge data structure ***
 // structure for vertex coordinates
 typedef struct {
@@ -66,7 +71,7 @@ float light_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
 float light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 // material colors
 float material_ambient[] = { 0.3, 0.3, 0.3, 1.0 };
-float material_diffuse[] = { 0.5, 0.6, 0.7, 1.0 };
+float material_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 float material_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 
 // flags for mouse button ON/OFF (OFF = 0, ON = 1)
@@ -255,15 +260,28 @@ void draw_object( void )
 
     // for each face
     for ( i = 0; i < nFaces; ++i ) {
-        // fill the face
-	glBegin( GL_POLYGON );
-	// for each corner vertex
-	for ( j = 0; j < face[ i ].nV; ++j ) {
-            // set the normal vector at each vertex
-            glNormal3dv( normal[ face[ i ].vid[ j ] ].v );
-	    glVertex3dv( vertex[ face[ i ].vid[ j ] ].v );
-	}
-	glEnd();
+      if ( face[ i ].nV == 4 ) {
+      glBegin( GL_POLYGON );	     // fill the face
+
+      // specify the texture coordinates of Vertex 0
+      glTexCoord2d( 0.0, 1.0 );
+      // draw Vertex 0
+      glVertex3dv( vertex[ face[ i ].vid[ 0 ] ].v );
+      // specify the texture coordinates of Vertex 1
+      glTexCoord2d( 1.0, 1.0 );
+      // draw Vertex 1
+      glVertex3dv( vertex[ face[ i ].vid[ 1 ] ].v );
+      // specify the texture coordinates of Vertex 2
+      glTexCoord2d( 1.0, 0.0 );
+      // draw Vertex 2
+      glVertex3dv( vertex[ face[ i ].vid[ 2 ] ].v );
+      // specify the texture coordinates of Vertex 3
+      glTexCoord2d( 0.0, 0.0 );
+      // draw Vertex 3
+      glVertex3dv( vertex[ face[ i ].vid[ 3 ] ].v );
+
+      glEnd();
+      }
     }
 }
 
@@ -289,8 +307,14 @@ void display( void )
     // rotate the object by the angle of azimuth
     glRotated( -azimuth, 0.0, 0.0, 1.0 );
 
+    // begin texture mapping
+    glEnable( GL_TEXTURE_2D );
+
     // draw the object
     draw_object();
+
+    // end texture mapping
+    glDisable( GL_TEXTURE_2D );
 
     // swap the foreground and background buffers
     glutSwapBuffers();
@@ -424,9 +448,42 @@ void keyboard( unsigned char key, int x, int y )
    glutPostRedisplay();
 }
 
+// initialize textures
+void mapping( void )
+{
+    // initialize the texture image
+    unsigned char texture[ TEXTURE_HEIGHT ][ TEXTURE_WIDTH ][ 3 ];
+    FILE *fp_r;
+
+    // load the texture image
+    if ( ( fp_r = fopen( TEXTURE_FILENAME, "rb" ) ) != NULL ) {
+	fread( texture, sizeof( unsigned char ), TEXTURE_HEIGHT*TEXTURE_WIDTH*3, fp_r );
+	fprintf( stderr, "Successfully loaded the file : %s\n", TEXTURE_FILENAME );
+	fclose( fp_r );
+    }
+    else {
+	fprintf( stderr, "Cannot find the file : %s\n", TEXTURE_FILENAME );
+	return;
+    }
+
+    // specifies the alignment requirements for the start of each pixel row in memory
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+
+    // texture assignment
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0,
+		  GL_RGB, GL_UNSIGNED_BYTE, texture );
+
+    // specify the interpolation technique for texture mapping
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+}
+
+
 // initialize OpenGL setups
 void init( void )
 {
+    // set up texture mapping
+    mapping();
     // specify black color for clearing frame buffer
     glClearColor( 0.0, 0.0, 0.0, 0.0 );
 
