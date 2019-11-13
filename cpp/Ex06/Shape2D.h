@@ -5,9 +5,13 @@
 
 class Shape2D{
 public:
-string Shape2D::get_name(){}
+string get_name(){}
 
 float compute_area(){};
+
+void translate(float tx, float ty):
+
 private:
+int x, y;
 };
 #endif
