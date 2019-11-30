@@ -27,7 +27,7 @@ void compute_k_closest(std::vector<int> n, int k){
     for(int i = 0; i < n.size(); ++i) {
         que.push(n[i]);
     }
-    std::cout << "k-closest numbers to the median are: ";
+    //std::cout << "k-closest numbers to the median are: ";
     for(int i = 0; i < k; ++i) {
         std::cout << que.top() << " ";
         que.pop();
@@ -47,7 +47,7 @@ int main(){
 
    // calculate median
     median = compute_median(n.begin(),n.end());
-   std::cout << "median is " << median << std::endl;
+   //std::cout << "median is " << median << std::endl;
 
    int k = 3;
    compute_k_closest(n,k);

@@ -7,10 +7,11 @@
 #include<functional>
 #include<mutex>
 
-std::mutex m;
-
 void split(std::size_t nele,std::size_t nthreads,std::vector<std::size_t> lower,std::vector<std::size_t> higher){
-
+for(int i =0;i < nthreads; i++){
+    lower[i] = (nele/nthreads)/i;
+    higher[i] = (nele/nthreads)/i;
+}
 }
 
 // assume that *result has been initialized to 0 in the caller.
