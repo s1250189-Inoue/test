@@ -18,15 +18,31 @@ public class compPrec {
 
 
     public static double getNegativeMachinePrecision() {
-
+        int n = 1;
+        double pow = Math.pow(2, -1*n);
+        double P = 1 - pow -1;
+        while(P != 0){
+            n += 1;
+            pow = Math.pow(2, -1*n);
+            P = 1 - pow - 1;
+        }
+        negativeMachinePrecision = Math.pow(2, -1*(n));
 
 	return negativeMachinePrecision;
     }
 
 
     public static double getLargestNumber() {
-
-
+        double f =1- 2 * negativeMachinePrecision;
+        double g = f;
+        f = 2 * f;
+        boolean A = Double.isFinite(f);
+        while(A){
+            g = f;
+            f = 2 * f;
+            A = Double.isFinite(f);
+        }
+        largestNumber = g;
 	return largestNumber;
     }
 
