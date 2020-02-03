@@ -26,8 +26,8 @@ class NumericalDifferntiation {
     System.out.println("Forward difference");
     for(int i = 0;i <= 5; i++){
         x = 0.1 * i * Math.PI;
-        Deriv = (float)((ex04.f(x+h) - ex04.f(x))/h);
-        Error = Deriv - (float)ex04.fprime(x);
+        Deriv = (float)((ex08.f(x+h) - ex08.f(x))/h);
+        Error = Deriv - (float)ex08.fprime(x);
         System.out.println("x = " + String.format("%.1f", i*0.1) + " PI  Deriv =   " + String.format("%.6f", Deriv) + "   Error =  " + String.format("%.6f", Error));
     }
 
@@ -35,8 +35,8 @@ class NumericalDifferntiation {
     System.out.println("Central difference");
     for(int i = 0;i <= 5; i++){
         x = 0.1 * i * Math.PI;
-        Deriv = (float)((ex04.f(x+h) - ex04.f(x-h))/(2.0*h));
-        Error = Deriv - (float)ex04.fprime(x);
+        Deriv = (float)((ex08.f(x+h) - ex08.f(x-h))/(2.0*h));
+        Error = Deriv - (float)ex08.fprime(x);
         System.out.println("x = " + String.format("%.1f", i*0.1) + " PI  Deriv =   " + String.format("%.6f", Deriv) + "   Error =  " + String.format("%.6f", Error));
     }
     }
@@ -61,6 +61,9 @@ class NumericalIntegration {
         Error = I - Integral;
         R = Error/I*100;
         System.out.println("I =   " + String.format("%.12f", I) + "   Error =  "+ String.format("%.4e", Error) +"   R =  " + String.format("%.2e", R) + " %");
+
+
+
         System.out.println("");
         System.out.println("Simpson 1/3 rule, nsub = 24");
         I = 0.0;
