@@ -68,8 +68,8 @@ public class Ex12 {
 	double d = 0.0;
 
 	//calcualte d
-	for(double i = 0;i<=n;i++){
-		d += f(0.0 + i*(1.0/n));
+	for(double i = 0;i<n;i++){
+		d += f(Rand());
 	}
 	d/=n;
 
@@ -79,8 +79,14 @@ public class Ex12 {
     void MonteCarlo2D(int n) {
 
 	int m = 0;
+	double x,y;
 
 	//calcualte m
+	for(double i = 0;i<n;i++){
+		x = -1+2*Rand();
+		y = -1+2*Rand();
+		if(f2(x,y)<0)m++;
+	}
 
 	double d = 4.0*(double)m/(double)n;
 
@@ -90,8 +96,16 @@ public class Ex12 {
     void MonteCarlo3D(int n) {
 
 	int m = 0;
+	double x,y,z;
 
 	//calcualte m
+	for(double i = 0;i<n;i++){
+		x = 2*Rand();
+		y = -0.5+2*Rand();
+		z = -1+2*Rand();
+		if(f3(x,y,z)<0)m++;
+	}
+
 
 	double d = 8.0*(double)m/(double)n;
 
