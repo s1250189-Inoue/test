@@ -36,7 +36,7 @@ public class Ex12 {
 	    e.MonteCarlo3D(i);
 	}
 
-    }
+	}
 
     static double f(double x) { return 1.0/(1.0 + x*x);  }
     static double exact() { return 0.25*Math.PI; }
@@ -44,8 +44,8 @@ public class Ex12 {
     static double f2(double x, double y) { return 13.0*x*x + 34.0*x*y + 25.0*y*y - 1.0; }
     static double exact2() { return Math.PI/6.0; }
 
-    static double f3(double x, double y, double z) { 
-	return (x-1.0)*(x-1.0) + (y-0.5)*(y-0.5) + z*z - 1.0; 
+    static double f3(double x, double y, double z) {
+	return (x-1.0)*(x-1.0) + (y-0.5)*(y-0.5) + z*z - 1.0;
     }
     static double exact3() { return 4.0*Math.PI/3.0; }
 
@@ -54,17 +54,24 @@ public class Ex12 {
 	a = c1;
 	b = c2;
 	m = mod;
-    }
+	}
+
+
     double Rand() {
 	r = (a*r + b)%m;
 	return (double)r/(double)m;
     }
+
 
     void MonteCarlo1D(int n) {
 
 	double d = 0.0;
 
 	//calcualte d
+	for(double i = 0;i<=n;i++){
+		d += f(0.0 + i*(1.0/n));
+	}
+	d/=n;
 
 	System.out.println("Num: " + n + " Result = " + d + " Error = " + (d - exact()));
     }
@@ -76,7 +83,7 @@ public class Ex12 {
 	//calcualte m
 
 	double d = 4.0*(double)m/(double)n;
-	
+
 	System.out.println("Num: " + n + " Result = " + d + " Error = " + (d - exact2()));
     }
 
@@ -87,7 +94,7 @@ public class Ex12 {
 	//calcualte m
 
 	double d = 8.0*(double)m/(double)n;
-	
+
 	System.out.println("Num: " + n + " Result = " + d + " Error = " + (d - exact3()));
     }
 
